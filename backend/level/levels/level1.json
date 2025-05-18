@@ -1,0 +1,7 @@
+{
+		"id": 1,
+		"title": "Get the name",
+		"description": "Extract the 'name' field from the object.",
+		"input": { "name": "Alice", "age": 30 },
+		"expected": "Alice"
+	}
