@@ -1,6 +1,7 @@
 package executor
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os/exec"
@@ -23,14 +24,22 @@ func (e Executor) executeCommand(c echo.Context) error {
 
 	var input CommandInput
 	c.Bind(&input)
+	fmt.Println(input)
 
-	cmd := exec.Command("echo", testJson, "|", "jq", ".")
+	cmdString := fmt.Sprintf(`echo '%s' | jq '%s'`, testJson, input.Command)
+	cmd := exec.Command("sh", "-c", cmdString)
+
 	output, err := cmd.Output()
 
 	if err != nil {
 		fmt.Println(err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
-	fmt.Println(string(output))
-	return c.JSON(http.StatusCreated, map[string]string{"result": string(output)})
+
+
+	var jqOutput interface{}
+	if err := json.Unmarshal(output, &jqOutput); err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Invalid jq output"})
+	}
+	return c.JSON(http.StatusCreated, map[string]interface{}{"result": jqOutput})
 }
